@@ -1,5 +1,13 @@
 # Tracking & Graph Transformation Service
 
+## Get started
+
+```
+> cd tracking
+> pip install -r requirements.txt
+> uvicorn main:app
+```
+
 ## Assignee
 
 - Mr.Algo (Pep)
