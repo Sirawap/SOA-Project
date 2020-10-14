@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 import requests
 
-app = FastAPI()
-
 result = dict()
+
+app = FastAPI()
 
 
 @app.get("/")
@@ -76,3 +76,6 @@ async def transform_graph():
         result[name] = temp
 
     return result
+
+# if __name__ == "__main__":
+#     uvicorn.run("main:app", host="0.0.0.0", port=8080)
