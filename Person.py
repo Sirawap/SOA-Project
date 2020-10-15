@@ -8,15 +8,15 @@ app.config["DEBUG"] = True
 people = []
 
 class Person(object):
-    def __init__(self, customerId, x, y):
-        self.customerId = customerId
+    def __init__(self, deviceId, x, y):
+        self.deviceId = deviceId
         self.x = x
         self.y = y
         self.contact_log = []
         self.covid_contact_log = []
 
     def getId(self):
-        return self.customerId
+        return self.deviceId
 
     def getContactLog(self):
         return self.contact_log
