@@ -1,4 +1,3 @@
-# Class for person with contact and covid contact log
 from flask import Flask, jsonify, request 
 # Preparation of Flask server (micro web framework)
 app = Flask(__name__)
