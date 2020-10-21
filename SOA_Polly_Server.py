@@ -59,6 +59,7 @@ def event():
         # receiver = request.args.get("receiver")
         # distance = request.args.get("distance")
         # time = request.args.get("time")
+<<<<<<< HEAD
 
         data = request.json
         data = jsonpickle.decode(data)
@@ -75,6 +76,10 @@ def event():
         # event = Event(event_id, request.args.json['sender'], request.args.json['receiver'],
         #               request.args.json['distance'], request.args.json['time'])
 
+=======
+        event = Event(event_id, request.json["sender"], request.json["receiver"],
+                      request.json["distance"], request.json["time"])
+>>>>>>> 145b78bafa5e2587cb3e554d0ddaef1465be7548
 
         # Check Room
         sender_room =  data['sender_room']
