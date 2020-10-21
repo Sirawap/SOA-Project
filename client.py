@@ -1,68 +1,78 @@
-from person import Person
+from personMRQandA import Person
+from flask import Flask,jsonify # server
+from flask import request
 import requests
 import random as rd
 import math as m
 import datetime as t
+import time
+import json
+import jsonpickle
+
 people_no = 20
 people = list()
 walk_dist = 15
 for i in range(people_no):
-    people.append(Person(rd.randrange(-200,200),rd.randrange(-200,200),i))
+    people.append(Person(rd.randrange(-50, 50), rd.randrange(-50, 50), i))
 
 
 def checkroom(p):
     if p.x < 0 and p.y < 0:
-        return "3"
+        return "Electrical Room"
     elif p.x > 0 and p.y > 0:
-        return "1"
+        return "Medbay"
     elif p.x > 0 and p.y < 0:
-        return "2"
+        return "Storage Room"
     else:
-        return "4"
+        return "Engine Room"
+
 
 def alarm_check(ppl):
     total = len(ppl)
     for i in range(total):
-        for j in range(i+1,total):
-            dist = m.sqrt(m.pow(ppl[i].x-ppl[j].x,2)+m.pow(ppl[i].y-ppl[j].y,2))
+        for j in range(i + 1, total):
+            dist = m.sqrt(m.pow(ppl[i].x - ppl[j].x, 2) + m.pow(ppl[i].y - ppl[j].y, 2))
             if dist <= 30:
                 bluetooth_data_load1 = {
-                    'sender': str(ppl[i].id),
-                    'receiver': str(ppl[j].id),
-                    'distance' : dist + rd.uniform(-0.1,0.1),
-                    'time' : str(t.datetime.now())
-
+                    "sender": str(ppl[i].id),
+                    "sender_room": checkroom(ppl[i]),
+                    "receiver": str(ppl[j].id),
+                    "receiver_room": checkroom(ppl[j]),
+                    "distance": str(dist + rd.uniform(-0.1, 0.1)),
+                    "time": str(t.datetime.now())
                 }
+
                 bluetooth_data_load2 = {
                     'sender': str(ppl[j].id),
+                    'sender_room': checkroom(ppl[j]),
                     'receiver': str(ppl[i].id),
-                    'distance' : dist + rd.uniform(-0.1,0.1),
-                    'time' : str(t.datetime.now())
-
+                    'receiver_room': checkroom(ppl[i]),
+                    'distance': dist + rd.uniform(-0.1, 0.1),
+                    'time': str(t.datetime.now())
                 }
 
-                room_data1 = {
-                    'id': str(ppl[i].id),
-                    'room': checkroom(ppl[i])
-                }
-                room_data2 = {
-                    'id': str(ppl[j].id),
-                    'room': checkroom(ppl[j])
-                }
+                print(bluetooth_data_load1)
+                data = jsonpickle.encode(bluetooth_data_load1)
+                print(bluetooth_data_load2)
+                data2 = jsonpickle.encode(bluetooth_data_load2)
+                # print(bluetooth_data_load1)
+                # print(type(bluetooth_data_load1))
 
-                requests.post(bluetooth_data_load1,'http://0.0.0.0:3000/event')
-                requests.post(room_data1,'http://0.0.0.0:3000/room')
-                requests.post(room_data2,'http://0.0.0.0:3000/room')
+                requests.post("http://localhost:8000/event", json = data)
+                requests.post("http://localhost:8000/event", json = data2)
+
 
 def pos_update(ppl):
     for p in ppl:
-        p.x = p.x + rd.randrange(-walk_dist,walk_dist)
-        p.y = p.y + rd.randrange(-walk_dist,walk_dist)
+        p.x = p.x + rd.randrange(-walk_dist, walk_dist)
+        p.y = p.y + rd.randrange(-walk_dist, walk_dist)
+
 
 if __name__ == "__main__":
-    for i in range(10):
+    for i in range(20):
         for p in people:
-            print(f"x:{p.x} y:{p.y}")
+            print(f"id: {p.id} x:{p.x} y:{p.y}")
         alarm_check(people)
         pos_update(people)
-        
+        time.sleep(1)
+

@@ -1,6 +1,6 @@
 from flask import Flask, redirect, url_for, request, jsonify, make_response, Response
 import requests
-
+import jsonpickle
 # Global
 app = Flask(__name__)
 db = []
@@ -20,21 +20,30 @@ def calculateDistance(distance, senderRoom, receiverRoom):
         return False
 
 
-class BluetoothEvent:
-    def __init__(self, uid, sender, receiver, distance, time):
-        self.id = uid
+class Event:
+    def __init__(self, event_id, sender, receiver, distance, time):
+        self.event_id = event_id
         self.sender = sender
         self.receiver = receiver
         self.distance = distance
         self.time = time
         self.isCovid = False
+    def getId(self):
+        return self.sender
+    def getContactWith(self):
+        return self.receiver
+    def getTime(self):
+        return self.time
+    def getCovidDis(self):
+        return self.isCovid
 
     def toJson(self):
         return {
-            "sender": self.sender,
-            "receiver": self.receiver,
-            "is_covid":self.is_covid,
-            "time": self.time
+            "id": self.sender,  # sender
+            "contactWith": self.receiver,  # receiver
+            "time": self.time,
+            "covidDistance": self.is_covid,
+
         }
 
     def is_covid(self):
@@ -50,18 +59,40 @@ def event():
         # receiver = request.args.get("receiver")
         # distance = request.args.get("distance")
         # time = request.args.get("time")
-        event = BluetoothEvent(event_id, request.json["sender"], request.json["receiver"],
-                               request.json["distance"], request.json["time"])
+
+        data = request.json
+        data = jsonpickle.decode(data)
+        print(data)
+        print(type(data))
+        print(event_id)
+        sender = data["sender"]
+        receiver = data['receiver']
+        distance = float(data['distance'])
+        time = data['time']
+
+        event = Event(event_id, sender, receiver,
+                      distance, time)
+        # event = Event(event_id, request.args.json['sender'], request.args.json['receiver'],
+        #               request.args.json['distance'], request.args.json['time'])
+
 
         # Check Room
-        get_room = requests.get("0.0.0.0:3000/room")
+        sender_room =  data['sender_room']
+        receiver_room = data['receiver_room']
         # Temp Variable name
-        if calculateDistance(request.json["sender"], get_room[event.sender], get_room[event.receiver]):
+        if calculateDistance(sender, sender_room, receiver_room):
             event.is_covid()
 
         event_id += 1
         db.append(event)
-        requests.post(event.toJson(), "0.0.0.0:3000/contact")
+        newData = {
+            "id": event.getId(),
+            "contactWith": event.getContactWith(),
+            "time": event.getTime(),
+            "covidDistance": event.getCovidDis()
+        }
+        newData = jsonpickle.encode(newData)
+        requests.put("http://localhost:3000/contact_log",json=newData)
 
         return make_response("Post Successful", 200)
     else:
@@ -73,4 +104,4 @@ def event():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8080)
+    app.run(debug=True, port=8000)

@@ -2,19 +2,20 @@ import datetime
 
 class Log(object):
 
-    def __init__(self, contact, time):
-        self.contact = contact
+    def __init__(self, idContact, time,boolean):
+        self.idContact = idContact
         self.time = time
+        self.covidDis = boolean
 
-    def  getContact(self):
-        return self.contact
-        
+    def getidContact(self):
+        return self.idContact
+
     def setContact(self,contact):
-        self.contact.append(contact)
+        self.idContact = contact
 
-    def toJson(self):
-        return {
-            "contact" : self.contact,
-            "time": self.time
-        }
+    def getTime(self):
+        return self.time
+
+    def getCovidDis(self):
+        return self.covidDis
         

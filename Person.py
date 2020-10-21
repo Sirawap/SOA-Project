@@ -1,6 +1,8 @@
 # Class for person with contact and covid contact log
 from flask import Flask,jsonify # server
 from flask import request
+import jsonpickle
+import requests
 from Log import Log
 # Preparation of Flask server (micro web framework)
 app = Flask(__name__)
@@ -8,27 +10,28 @@ app.config["DEBUG"] = True
 people = []
 
 class Person(object):
-    def __init__(self, deviceId):
-        self.deviceId = deviceId
-        # self.x = x
-        # self.y = y
+    def __init__(self, id):
+        self.id = id
         self.contact_log = []
-        self.covid_contact_log = []
 
     def getId(self):
         return self.deviceId
 
-    def getContactLog(self):
-        return self.contact_log.getContact()
+    def addLog(self,target,time,covidDis):
+        newLog = Log(target,time,covidDis)
+        self.contact_log.append(newLog)
 
-    def getCovidLog(self):
-        return self.covid_contact_log.getContact()
+    def getNewestContactid(self):
+        index = len(self.contact_log) - 1
+        return self.contact_log[index].getidContact()
 
-    def setContactLog(self,Log):
-        self.contact_log = Log
+    def getNewestTime(self):
+        index = len(self.contact_log) - 1
+        return self.contact_log[index].getTime()
 
-    def setCovidLog(self,Log):
-        self.covid_contact_log = Log
+    def getNewestCovidDis(self):
+        index = len(self.contact_log) - 1
+        return self.contact_log[index].getCovidDis()
 
 a=Person('0')
 b=Person("1")
@@ -40,6 +43,16 @@ g=Person('6')
 h=Person("7")
 i=Person('8')
 j=Person("9")
+a2=Person('10')
+b2=Person("11")
+c2=Person('12')
+d2=Person("13")
+e2=Person('14')
+f2=Person("15")
+g2=Person('16')
+h2=Person("17")
+i2=Person('18')
+j2=Person("19")
 people.append(a)
 people.append(b)
 people.append(c)
@@ -50,54 +63,57 @@ people.append(g)
 people.append(h)
 people.append(i)
 people.append(j)
-
+people.append(a2)
+people.append(b2)
+people.append(c2)
+people.append(d2)
+people.append(e2)
+people.append(f2)
+people.append(g2)
+people.append(h2)
+people.append(i2)
+people.append(j2)
 # REST endpoint: GET test1
 # just returns OK
 
-@app.route('/contact', methods=['GET'])
+@app.route('/contact_log', methods=['GET'])
 def getContact():
     message = []
-
-    for person in people :
-        contact = []
-        covid = []
-        for x in person.contact_log:
-            contact.append(x.toJson())
-        for y in person.covid_contact_log:
-            covid.append(y.toJson())    
-        message.append({"id":person.deviceId,"contact": contact,"covid": covid})
+    for person in people:
+        for i in person.contact_log:
+            message.append({"senderId": person.deviceId, "receiverId": i.getidContact(),"tiemstamp": i.getTime(), "covidDistance" : i.getCovidDis()})
     message = jsonify(message)
-
     return message
 
-@app.route('/contact', methods=['PUT'])
+@app.route('/contact_log', methods=['PUT'])
 def postContact():
+
     #extract data
     data = request.json
-    # id = data['id']
-    # x = data['x']
-    # y = data['y']
+    data = jsonpickle.decode(data)
 
-    sender = data['sender']
-    receiver = data['receiver']
-    is_covid = data['is_covid']
+    sender = data['id']
+    receiver = data['contactWith']
+    is_covid = data['covidDistance']
     time = data['time']
+    print(data)
+    print("sender : "+sender+" || receiver : "+receiver)
 
-    for person in people:
-        if(person.deviceId == sender):
-            contact = Log(receiver ,time)
-            person.contact_log.append(contact)
-            app.logger.info(is_covid)
-            if(is_covid):
-                person.covid_contact_log.append(contact)
-            
-    
-    #define person
-    
-    #add new person to the list of people
-    people.append(person)
 
-    return "event updated"  
+    message = {
+        "senderId": sender,
+        "receiverId": receiver,
+        "tiemstamp": time,
+        "covidDistance": is_covid
+    }
+    #send to dewkul(Mr.Tech)
+    message = jsonpickle.encode(message)
+    requests.put("http://localhost:4000/covid", json=message)
+    #requests.post("http://localhost:1234/covid", message)
+
+
+
+    return "event updated"
 
 # @app.route('/contact', methods=['PUT'])
 # def putContact():
@@ -120,4 +136,4 @@ def postContact():
 #     return "update person contact"
     
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=3000)
+    app.run(port=3000)
