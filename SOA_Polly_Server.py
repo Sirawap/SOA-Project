@@ -20,7 +20,7 @@ def calculateDistance(distance, senderRoom, receiverRoom):
         return False
 
 
-class BluetoothEvent:
+class Event:
     def __init__(self, event_id, sender, receiver, distance, time):
         self.event_id = event_id
         self.sender = sender
@@ -51,8 +51,8 @@ def event():
         # receiver = request.args.get("receiver")
         # distance = request.args.get("distance")
         # time = request.args.get("time")
-        event = BluetoothEvent(event_id, request.json["sender"], request.json["receiver"],
-                               request.json["distance"], request.json["time"])
+        event = Event(event_id, request.json["sender"], request.json["receiver"],
+                      request.json["distance"], request.json["time"])
 
         # Check Room
         get_room = requests.get("0.0.0.0:3000/room")
