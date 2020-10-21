@@ -21,8 +21,8 @@ def calculateDistance(distance, senderRoom, receiverRoom):
 
 
 class BluetoothEvent:
-    def __init__(self, uid, sender, receiver, distance, time):
-        self.id = uid
+    def __init__(self, event_id, sender, receiver, distance, time):
+        self.event_id = event_id
         self.sender = sender
         self.receiver = receiver
         self.distance = distance
@@ -31,10 +31,11 @@ class BluetoothEvent:
 
     def toJson(self):
         return {
-            "sender": self.sender,
-            "receiver": self.receiver,
-            "is_covid":self.is_covid,
-            "time": self.time
+            "id": self.sender,  # sender
+            "contactWith": self.receiver,  # receiver
+            "time": self.time,
+            "covidDistance": self.is_covid,
+
         }
 
     def is_covid(self):
