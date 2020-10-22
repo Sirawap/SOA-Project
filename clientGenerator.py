@@ -1,4 +1,4 @@
-from personMRQandA import Person
+from person import Person
 from flask import Flask,jsonify # server
 from flask import request
 import requests
