@@ -1,4 +1,4 @@
-from person import Person
+from Person import Person
 from flask import Flask,jsonify # server
 from flask import request
 import requests
@@ -58,8 +58,8 @@ def alarm_check(ppl):
                 # print(bluetooth_data_load1)
                 # print(type(bluetooth_data_load1))
 
-                requests.post("http://localhost:8000/event", json = data)
-                requests.post("http://localhost:8000/event", json = data2)
+                requests.post("http://localhost:2000/event", json = data)
+                requests.post("http://localhost:2000/event", json = data2)
 
 
 def pos_update(ppl):

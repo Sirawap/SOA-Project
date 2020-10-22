@@ -6,10 +6,6 @@ app = Flask(__name__)
 db = []
 event_id = 0
 
-
-# Class
-
-
 def calculateDistance(distance, senderRoom, receiverRoom):
     covidDistance = 5
     if senderRoom is not receiverRoom:
@@ -19,7 +15,7 @@ def calculateDistance(distance, senderRoom, receiverRoom):
     else:
         return False
 
-
+# Class
 class Event:
     def __init__(self, event_id, sender, receiver, distance, time):
         self.event_id = event_id
@@ -92,7 +88,7 @@ def event():
             "covidDistance": event.getCovidDis()
         }
         newData = jsonpickle.encode(newData)
-        requests.put("http://localhost:3000/contact_log",json=newData)
+        requests.put("http://localhost:1234/contact_log",json=newData)
 
         return make_response("Post Successful", 200)
     else:
@@ -104,4 +100,4 @@ def event():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8000)
+    app.run(debug=True, port=2000)
