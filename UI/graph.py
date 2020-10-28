@@ -13,62 +13,63 @@ import json
 
 G = nx.Graph()
 
-while(1):
-    print()
-    r = requests.get('http://localhost:8000/graph')
-    print(r.json())
+def run():
     
-    dataJson = r.text
-    data = json.loads(dataJson)
-    
-    print("Humans: ", data["nodes"])
-    print("Safe distance: ", data["normalEdges"])
-    print("Covid edges: ", data["covidEdges"])
-    print()
-    
-    ############# Nodes
-    nodes = []
-    print("Nodes")
-    for i in data["nodes"]:
-        nodes.append(i)
-        print(nodes)
-    
-    print()
-    for i in nodes:
-        G.add_node(i, node_size=600, color = 'green')
-    #######################################    
-    
-    ############# Normal Edges
-    print("Normal edges")
-    for i in data["normalEdges"]:
-        print(i)
+    while(1):
+        print()
         
-    for i in data["normalEdges"]:
-        G.add_edge(i[0],i[1], color = 'b')
-    ####################################### 
-      
-    
-    ############# Covid edges
-    print("Covid edges")
-    for i in data["covidEdges"]:
-        print(i)
-    
-    for i in data["covidEdges"]:
-        G.add_edge(i[0],i[1], color = 'r')
-    ####################################### 
-    
-    
-    print("\nAll edges:")
-    print(G.edges())
-    
-    
-    colors = nx.get_edge_attributes(G,'color').values()
-    ncolors = nx.get_node_attributes(G, 'color').values()
-    weights = nx.get_edge_attributes(G,'weight').values()
-    
-    
-    nx.draw(G, with_labels = True, edge_color = colors, node_size = 600, node_color = ncolors)
-    plt.show()
-    t.sleep(10)
+        #Getting data
+        r = requests.get('http://localhost:8000/graph')
+        #print(r.json())
+        
+        dataJson = r.text
+        data = json.loads(dataJson)
+        
+        
+        ############# Nodes, list of people
+        nodes = []
+        print("\nNodes")
+        for i in data["nodes"]:
+            nodes.append(i)
+            print(nodes)
+        
+        for i in nodes:
+            G.add_node(i, node_size=600, color = 'green')
+        #######################################    
+        
+        ############# Normal Edges, contact with people at safe distance
+        print("\nNormal edges")
+        for i in data["normalEdges"]:
+            print(i)
+            
+        for i in data["normalEdges"]:
+            G.add_edge(i[0],i[1], color = 'b')
+        ####################################### 
+          
+        
+        ############# Covid edges, contact with people at unsafe distance
+        print("\nCovid edges")
+        for i in data["covidEdges"]:
+            print(i)
+        
+        for i in data["covidEdges"]:
+            G.add_edge(i[0],i[1], color = 'r')
+        ####################################### 
+        
+        
+        print("\nAll edges:")
+        print(G.edges())
+        
+        
+        colors = nx.get_edge_attributes(G,'color').values()
+        ncolors = nx.get_node_attributes(G, 'color').values()
+        weights = nx.get_edge_attributes(G,'weight').values()
+        
+        
+        nx.draw(G, with_labels = True, edge_color = colors, node_size = 600, node_color = ncolors)
+        plt.show()
+        t.sleep(10)
 
+if __name__ == "__main__":
+    run()
 
