@@ -1,9 +1,13 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
+from typing import Tuple
 import uvicorn
+import os
 
 
+# Request body format for endpoint POST: /covid
 class Data(BaseModel):
     senderId: str
     recieverId: str
@@ -11,60 +15,64 @@ class Data(BaseModel):
     covidDistance: bool
 
 
+# Response format form endpoint GET: /graph
 response = {
-    'normalEdges': set(),  # Set of tuple[str, str]
-    'covidEdges': set(),  # Set of tuple[str, str]
-    'nodes': set()        # Set of str
+    'normalEdges': set(),  # Set of pairs - tuple[str, str]
+    'covidEdges': set(),   # Set of pairs - tuple[str, str]
+    'nodes': set()         # Set of nodes - str
 }
 
 
 app = FastAPI()
 
 contacts = dict()
-timeout = timedelta(seconds=30)
+
+load_dotenv()
+
+# Set default data timeout (expire)
+timeout = timedelta(seconds=float(os.getenv('DATA_TIMEOUT')))
 
 
-def create_edge(sender, receiver):
+def create_edge(sender, receiver) -> Tuple[str, str]:
+    # Forcing entities to be in ascending order e.g. (A, B) NOT (B, A)
     return (sender, receiver) if sender < receiver else (receiver, sender)
 
 
 def remove(edge):
-    # print(f'Remove: {edge}')
     response['covidEdges'].discard(edge)
     response['normalEdges'].discard(edge)
 
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World. This is a Gateway"}
+    return {"message": "Hello World. This is a gateway :)"}
 
 
+# For recieving data from Mr.Time + Girb ()
 @app.post("/covid")
 async def add_data(req: Data):
-    # edge = (req.senderId, req.recieverId) if req.senderId < req.recieverId else (
-    #     req.recieverId, req.senderId)
-    edge = create_edge(req.senderId.upper(), req.recieverId.upper())
+    sender_id = req.senderId.upper()
+    reciever_id = req.recieverId.upper()
 
-    # Add to discovered node
+    if sender_id == reciever_id:
+        raise HTTPException(status_code=400, detail="Duplicated IDs (╥_╥)")
+
+    edge = create_edge(sender_id, reciever_id)
+
+    # Add to discovered nodes
     response["nodes"].update([edge[0], edge[1]])
 
     key = f'{edge[0]}#{edge[1]}'
-    # print(key)
+
+    # Check whether we have discovered this node or not
     if key in contacts:
         is_covid = contacts[key]['isCovid']
 
-        #  Check if covidDis status is changed
-        # try:
-        #     if is_covid is not req.covidDistance:
-        #         print(f'Remove: {edge}')
-        #         response['covidEdges'].remove(
-        #             edge) if is_covid else response['normalEdges'].remove(edge)
-        # except KeyError as e:
-        #     return f'Failed: Set.remove() => {e}'
-
+        #  Check if covid status is changed or not
         if is_covid is not req.covidDistance:
             remove(edge)
         else:
+            # Update lastest time
             contacts[key]['timestamp'] = req.timestamp
 
     contacts[key] = {
@@ -80,15 +88,15 @@ async def add_data(req: Data):
     return req
 
 
+# For sending data to GUI
 @app.get("/graph")
 async def transform_graph():
-    # print(f'Contacts:\n{contacts}')
-
     now = datetime.now()
 
     to_be_removed = list()
     for key, contact in contacts.items():
-        # print(now - contact['timestamp'])
+
+        # Find outdated data
         if now - contact['timestamp'] > timeout:
             a, b = key.split('#')
             edge = create_edge(a, b)
@@ -102,11 +110,13 @@ async def transform_graph():
     return response
 
 
+# Return current timeout setting
 @app.get("/graph/timeout")
 async def get_timeout():
-    return timeout
+    return f"Data is valid for {timeout}"
 
 
+# Update timeout settings
 @app.get("/graph/timeout/set")
 async def set_timeout(sec: float):
     global timeout

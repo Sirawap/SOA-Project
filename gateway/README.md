@@ -1,16 +1,16 @@
-# Tracking & Graph Transformation Service
+# API Gateway
 
 ## Get started
 
 ```
-> cd gateway
-> pip install -r requirements.txt
-> uvicorn main:app
+$ cd gateway
+$ pip install -r requirements.txt
+$ python main.py
 ```
 
 ## Assignee
 
-- Mr.Tech (Dew)
+Mr.Tech (◡ ω ◡)
 
 ## DONE
 
