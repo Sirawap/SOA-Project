@@ -3,7 +3,7 @@ from flask import Flask, jsonify  # server
 from flask import request
 import jsonpickle
 import requests
-from Log import Log
+from model.Log import Log
 
 # Preparation of Flask server (micro web framework)
 app = Flask(__name__)
@@ -108,12 +108,14 @@ def postContact():
     message = {
         "senderId": sender,
         "receiverId": receiver,
-        "tiemstamp": time,
+        "timestamp": time,
         "covidDistance": is_covid
     }
+
+    print(f'SEND: {message}')
     # send to dewkul(Mr.Tech)
     message = jsonpickle.encode(message)
-    requests.put("http://localhost:8000/covid", json=message)
+    requests.post("http://localhost:8000/covid", json=message)
     # requests.post("http://localhost:1234/covid", message)
 
     return "event updated"

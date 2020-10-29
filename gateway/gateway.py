@@ -1,18 +1,14 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from typing import Tuple
 import uvicorn
 import os
+from model import RawLog
 
 
 # Request body format for endpoint POST: /covid
-class Data(BaseModel):
-    senderId: str
-    recieverId: str
-    timestamp: datetime
-    covidDistance: bool
+
 
 
 # Response format form endpoint GET: /graph
@@ -48,9 +44,9 @@ async def root():
     return {"message": "Hello World. This is a gateway :)"}
 
 
-# For recieving data from Mr.Time + Girb ()
+# For receiving data from Mr.Time + Girb ()
 @app.post("/covid")
-async def add_data(req: Data):
+async def add_data(req: RawLog):
     sender_id = req.senderId.upper()
     reciever_id = req.recieverId.upper()
 

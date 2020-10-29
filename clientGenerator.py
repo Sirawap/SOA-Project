@@ -1,12 +1,9 @@
-from Person import Person
-from flask import Flask,jsonify # server
-from flask import request
+from model.Person import Person
 import requests
 import random as rd
 import math as m
 import datetime as t
 import time
-import json
 import jsonpickle
 
 people_no = 20
