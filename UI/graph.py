@@ -11,13 +11,12 @@ import time as t
 import requests
 import json
 
+plt.ion()
+fig = plt.figure()
 G = nx.Graph()
 
 def run():
-    
     while(1):
-        print()
-        
         #Getting data
         r = requests.get('http://localhost:8000/graph')
         #print(r.json())
@@ -26,7 +25,7 @@ def run():
         data = json.loads(dataJson)
         
         
-        ############# Nodes, list of people
+        #Nodes, list of people
         nodes = []
         print("\nNodes")
         for i in data["nodes"]:
@@ -37,7 +36,7 @@ def run():
             G.add_node(i, node_size=600, color = 'green')
         #######################################    
         
-        ############# Normal Edges, contact with people at safe distance
+        #Normal Edges, contact with people at safe distance
         print("\nNormal edges")
         for i in data["normalEdges"]:
             print(i)
@@ -47,7 +46,7 @@ def run():
         ####################################### 
           
         
-        ############# Covid edges, contact with people at unsafe distance
+        #Covid edges, contact with people at unsafe distance
         print("\nCovid edges")
         for i in data["covidEdges"]:
             print(i)
@@ -67,9 +66,13 @@ def run():
         
         
         nx.draw(G, with_labels = True, edge_color = colors, node_size = 600, node_color = ncolors)
-        plt.show()
-        t.sleep(10)
+        fig.canvas.draw()
+        t.sleep(5)
+    
+        print("-----------------------------\n")
+            
 
 if __name__ == "__main__":
     run()
+
 
