@@ -8,9 +8,9 @@ event_id = 0
 
 def calculateDistance(distance, senderRoom, receiverRoom):
     covidDistance = 5
-    if senderRoom is not receiverRoom:
-        return False
-    if distance <= covidDistance:
+    # if senderRoom is not receiverRoom:
+    #     return False
+    if float(distance) <= covidDistance:
         return True
     else:
         return False
