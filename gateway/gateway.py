@@ -1,30 +1,28 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from typing import Tuple
-import uvicorn
+from flask import Flask, request, jsonify
+import json
+import jsonpickle
 import os
 
 
-# Request body format for endpoint POST: /covid
-class Data(BaseModel):
-    senderId: str
-    recieverId: str
-    timestamp: datetime
-    covidDistance: bool
+# Convert datatype set -> list for json responding
+class SetEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, set):
+            return list(obj)
+        return json.JSONEncoder.default(self, obj)
 
 
-# Response format form endpoint GET: /graph
+# Response format for endpoint GET: /graph
 response = {
     'normalEdges': set(),  # Set of pairs - tuple[str, str]
     'covidEdges': set(),   # Set of pairs - tuple[str, str]
     'nodes': set()         # Set of nodes - str
 }
 
-
-app = FastAPI()
-
+app = Flask(__name__)
 contacts = dict()
 
 load_dotenv()
@@ -43,21 +41,32 @@ def remove(edge):
     response['normalEdges'].discard(edge)
 
 
-@app.get("/")
-async def root():
+@app.route("/", methods=["GET"])
+def root():
     return {"message": "Hello World. This is a gateway :)"}
 
 
-# For recieving data from Mr.Time + Girb ()
-@app.post("/covid")
-async def add_data(req: Data):
-    sender_id = req.senderId.upper()
-    reciever_id = req.recieverId.upper()
+@app.route("/covid", methods=["POST"])
+def add_data():
+    req_data = request.get_json()
+    req_data = jsonpickle.decode(req_data)
 
-    if sender_id == reciever_id:
-        raise HTTPException(status_code=400, detail="Duplicated IDs (╥_╥)")
+    # print(req_data, type(req_data))
+    # print(req_data['senderId'])
+    # print(req_data['receiverId'])
+    # print(req_data['timestamp'])
+    # print(req_data['covidDistance'], end='\n\n')
 
-    edge = create_edge(sender_id, reciever_id)
+    req_sender_id = str(req_data['senderId']).upper()
+    req_receiver_id = str(req_data['receiverId']).upper()
+    req_timestamp = datetime.strptime(
+        str(req_data['timestamp']), "%Y-%m-%d %H:%M:%S.%f")
+    req_covid_distance = bool(req_data['covidDistance'])
+
+    if req_sender_id == req_receiver_id:
+        return "Duplicated IDs (╥_╥)", 400
+
+    edge = create_edge(req_sender_id, req_receiver_id)
 
     # Add to discovered nodes
     response["nodes"].update([edge[0], edge[1]])
@@ -69,28 +78,30 @@ async def add_data(req: Data):
         is_covid = contacts[key]['isCovid']
 
         #  Check if covid status is changed or not
-        if is_covid is not req.covidDistance:
+        if is_covid is not req_covid_distance:
             remove(edge)
         else:
             # Update lastest time
-            contacts[key]['timestamp'] = req.timestamp
+            contacts[key]['timestamp'] = req_timestamp
 
     contacts[key] = {
-        "isCovid": req.covidDistance,
-        "timestamp": req.timestamp
+        "isCovid": req_covid_distance,
+        "timestamp": req_timestamp
     }
 
-    if req.covidDistance:
+    if req_covid_distance:
         response['covidEdges'].add(edge)
     else:
         response['normalEdges'].add(edge)
+    print(response)
+    return 'ok'
 
-    return req
 
+@app.route("/graph", methods=['GET'])
+def transform_graph():
+    # global response
+    print(response)
 
-# For sending data to GUI
-@app.get("/graph")
-async def transform_graph():
     now = datetime.now()
 
     to_be_removed = list()
@@ -107,21 +118,8 @@ async def transform_graph():
     for c in to_be_removed:
         del contacts[c]
 
-    return response
+    return json.dumps(response, cls=SetEncoder)
 
 
-# Return current timeout setting
-@app.get("/graph/timeout")
-async def get_timeout():
-    return f"Data is valid for {timeout}"
-
-
-# Update timeout settings
-@app.get("/graph/timeout/set")
-async def set_timeout(sec: float):
-    global timeout
-    timeout = timedelta(seconds=sec)
-    return "OK"
-
-if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, debug=True)
+if __name__ == '__main__':
+    app.run(debug=True, port=8000)  # run app in debug mode on port 5000
