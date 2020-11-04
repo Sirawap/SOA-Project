@@ -1,0 +1,11 @@
+Mr.Time + Mr.Project (Putter & Bright)
+
+Table Idea
+
+Person | Device | Location | Time
+
+Mr.A      D1      Room808    13.00
+
+Mr.B      D2      Room808    13.00
+
+Mr.A      D1      Room809    14.00

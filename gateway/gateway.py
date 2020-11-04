@@ -1,3 +1,4 @@
+
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from typing import Tuple
@@ -16,13 +17,16 @@ class SetEncoder(json.JSONEncoder):
 
 
 # Response format for endpoint GET: /graph
+
 response = {
     'normalEdges': set(),  # Set of pairs - tuple[str, str]
     'covidEdges': set(),   # Set of pairs - tuple[str, str]
     'nodes': set()         # Set of nodes - str
 }
 
+
 app = Flask(__name__)
+
 contacts = dict()
 
 load_dotenv()
@@ -67,6 +71,7 @@ def add_data():
         return "Duplicated IDs (╥_╥)", 400
 
     edge = create_edge(req_sender_id, req_receiver_id)
+
 
     # Add to discovered nodes
     response["nodes"].update([edge[0], edge[1]])
