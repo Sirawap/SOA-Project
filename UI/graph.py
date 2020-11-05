@@ -66,6 +66,7 @@ def run():
         
         
         nx.draw(G, with_labels = True, edge_color = colors, node_size = 600, node_color = ncolors)
+        plt.clf()
         fig.canvas.draw()
         t.sleep(5)
     
